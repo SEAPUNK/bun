@@ -2086,8 +2086,7 @@ pub fn buildRequest(this: *HTTPClient, body_len: usize) picohttp.Request {
         // Skip host and connection header
         // we manage those
         switch (hash) {
-            hashHeaderConst("Connection"),
-            => continue,
+            hashHeaderConst("Connection") => continue,
             hashHeaderConst("if-modified-since") => {
                 if (this.force_last_modified and this.if_modified_since.len == 0) {
                     this.if_modified_since = this.headerStr(header_values[i]);
