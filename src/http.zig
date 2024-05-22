@@ -2076,6 +2076,7 @@ pub fn buildRequest(this: *HTTPClient, body_len: usize) picohttp.Request {
     var override_accept_header = false;
     var override_host_header = false;
     var override_user_agent = false;
+    var override_content_length = false;
 
     for (header_names, 0..) |head, i| {
         const name = this.headerStr(head);
@@ -2086,7 +2087,6 @@ pub fn buildRequest(this: *HTTPClient, body_len: usize) picohttp.Request {
         // we manage those
         switch (hash) {
             hashHeaderConst("Connection"),
-            hashHeaderConst("Content-Length"),
             => continue,
             hashHeaderConst("if-modified-since") => {
                 if (this.force_last_modified and this.if_modified_since.len == 0) {
@@ -2104,6 +2104,9 @@ pub fn buildRequest(this: *HTTPClient, body_len: usize) picohttp.Request {
             },
             hashHeaderConst("Accept-Encoding") => {
                 override_accept_encoding = true;
+            },
+            hashHeaderConst("Content-Length") => {
+                override_content_length = true;
             },
             else => {},
         }
@@ -2156,7 +2159,7 @@ pub fn buildRequest(this: *HTTPClient, body_len: usize) picohttp.Request {
         header_count += 1;
     }
 
-    if (body_len > 0 or this.method.hasRequestBody()) {
+    if (!override_content_length and (body_len > 0 or this.method.hasRequestBody())) {
         request_headers_buf[header_count] = .{
             .name = content_length_header_name,
             .value = std.fmt.bufPrint(&this.request_content_len_buf, "{d}", .{body_len}) catch "0",
